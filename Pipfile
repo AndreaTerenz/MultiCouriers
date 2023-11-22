@@ -4,14 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-z3 = "*"
-z3-solver = "*"
 jupyter = "*"
 numpy = "*"
 pandas = "*"
 matplotlib = "*"
 networkx = "*"
 pysmt = "*"
+z3 = "*"
+z3-solver = "*"
 
 [dev-packages]
 
