@@ -1,5 +1,4 @@
-from z3 import *
-from constraints import *
+from SMT.constraints import *
 
 """
 Given a graph (v1,...,vn,E) and d colors, we wanna assign a color to each vertex s.t.:

@@ -1,4 +1,4 @@
-from constraints import *
+from SMT.constraints import *
 
 """
 a hospital supervisor needs to create a schedule for n nurses over a fixed day period, subject to the following conditions:

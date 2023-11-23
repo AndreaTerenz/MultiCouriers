@@ -10,7 +10,6 @@ pandas = "*"
 matplotlib = "*"
 networkx = "*"
 pysmt = "*"
-z3 = "*"
 z3-solver = "*"
 
 [dev-packages]

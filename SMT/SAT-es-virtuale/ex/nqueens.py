@@ -1,5 +1,4 @@
-from z3 import *
-from constraints import *
+from SMT.constraints import *
 
 def display_nqueens(sol):
     board = [[0] * len(sol) for i in range(len(sol))]

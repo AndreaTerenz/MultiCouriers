@@ -1,5 +1,4 @@
-from z3 import *
-from constraints import *
+from SMT.constraints import *
 
 def sudoku(instance):
     r9 = range(9)
