@@ -5,9 +5,9 @@ from pysmt.logics import QF_UFLIRA
 import logging
 
 try:
-    from loader import load_MCP
+    from mcputils import load_MCP
 except:
-    from ..loader import load_MCP
+    from ..mcputils import load_MCP
 
 def to_symbol_array(values, name):
     symbs = Symbol(name, ArrayType(INT, INT))
