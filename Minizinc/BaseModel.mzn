@@ -8,7 +8,7 @@ array[1..n+1, 1..n+1] of int: dist; % Distances from all places to one another
 % Variables
 array[1..n] of var 1..m: Assignment; % For each package, the courier transporting it
 constraint forall(i in 1..m)(sum([size[j] | j in 1..n where Assignment[j] == i]) <= load[i]); % Do not exceed maximum load size
-constraint if (n >=m /\ max(size) <= min(load)) then forall(i in 1..m)(i in Assignment) /\
+constraint if (max(size) <= min(load)) then forall(i in 1..m)(i in Assignment) /\
                         forall(i in 1..m, j in (n-m+3)..n)(Tours[i,j] = 1) endif; % At least 1 package per courier, when possible
 
 array[1..m] of var 1..n: Count;
