@@ -1,4 +1,4 @@
-from SMT.constraints import *
+from SAT_SMT.constraints import *
 
 def display_nqueens(sol):
     board = [[0] * len(sol) for i in range(len(sol))]

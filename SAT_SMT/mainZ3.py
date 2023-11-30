@@ -1,11 +1,7 @@
 from constraints import *
 from timeit import default_timer as timer
 from sys import argv
-
-try:
-    from mcputils import load_MCP
-except:
-    from ..mcputils import load_MCP
+from mcputils import load_MCP, check_solver
 
 def to_z3array(values, name, val_sort, idx_sort=IntSort()):
     output = Array(name, idx_sort, val_sort)
@@ -25,69 +21,6 @@ def max_z3(values):
     for val in values[1:]:
         m = If(val > m, val, m)
     return m
-
-def check_solver(s, vars, instance, optim_res, expected_sat = True):
-    print("*" * 50)
-
-    n = instance["n_items"]
-    m = instance["n_couriers"]
-    load_sizes = instance["load_sizes"]
-    item_sizes = instance["item_sizes"]
-    dists = instance["distances"]
-
-    start = timer()
-    res = s.check()
-    end = timer()
-
-    exp = sat if expected_sat else unsat
-
-    assert res == exp, f"Incorrect result (expected {exp})"
-
-    if res == unsat:
-        print("UNSATISFIABLE")
-        return
-
-    print("SATISFIABLE")
-    print(f"Done in {end - start:.3f} seconds")
-
-    model = s.model()
-
-    delivered = []
-
-    print(f"Optimized Z: {optim_res.value()}")
-
-    for i in range(m):
-        print(f"Courier {i}: ", end="")
-
-        tot = 0
-        last_stop = -1
-        travelled = 0
-
-        for k in range(n-m+1):
-            v = model.evaluate(vars[i][k]).as_long()
-            if v != -1:
-                delivered.append(v)
-                tot += item_sizes[v]
-                print(f"{v:2}", end=" ")
-            else:
-                print("--", end=" ")
-
-            travelled += dists[last_stop][v]
-            last_stop = v
-
-        travelled += dists[last_stop][-1]
-
-        print(f"\t carried: {tot:2} - travelled: {travelled}")
-        assert tot <= load_sizes[i], f"Load constraint violated for courier {i}"
-    print("Load limits satisfied")
-
-    deliv_len = len(delivered)
-    deliv_set_len = len(set(delivered))
-
-    assert deliv_len == deliv_set_len, "Items delivered more than once"
-    assert deliv_set_len == n, "Not all items were delivered"
-
-    print("All items delivered exactly once")
 
 def main():
     inst_path = argv[1]
@@ -150,7 +83,17 @@ def main():
         s.minimize(total_dist[i])"""
     z = s.minimize(max_z3(total_dist))
 
-    check_solver(s, X, inst, z)
+    start = timer()
+    res = s.check()
+    end = timer()
+
+    print(f"Done in {end - start:.3f} seconds")
+
+    model = s.model()
+
+    check_solver(res, X, inst, optim_value=z.value(),
+                 get_val_lambda=lambda x : model.eval(x).as_long(),
+                 unsat_val=unsat)
 
 if __name__ == '__main__':
     main()

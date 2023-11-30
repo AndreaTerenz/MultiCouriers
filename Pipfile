@@ -11,6 +11,8 @@ matplotlib = "*"
 networkx = "*"
 pysmt = "*"
 z3-solver = "*"
+swig = "*"
+mxklabs = "*"
 
 [dev-packages]
 

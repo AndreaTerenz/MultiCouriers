@@ -88,8 +88,8 @@ def main_file_test():
         (pop)
         (check-sat)"""
 
-    # We read the SMT-LIB Script by creating a Parser.
-    # From here we can get the SMT-LIB script.
+    # We read the SAT_SMT-LIB Script by creating a Parser.
+    # From here we can get the SAT_SMT-LIB script.
     parser = SmtLibParser()
 
     # The method SmtLibParser.get_script takes a buffer in input. We use StringIO to simulate an open file.
@@ -105,7 +105,7 @@ def main_file_test():
     return
 
     # The SmtLibScript provides an iterable representation of the commands
-    # that are present in the SMT-LIB file.
+    # that are present in the SAT_SMT-LIB file.
     #
     # Printing a summary of the issued commands
     for cmd in script:
@@ -126,7 +126,7 @@ def main_file_test():
         print(d)
     print("*" * 50)
 
-    # Most SMT-LIB scripts define a single SAT call. In these cases, the
+    # Most SAT_SMT-LIB scripts define a single SAT call. In these cases, the
     # result can be obtained by conjoining multiple assertions. The
     # method to do that is SmtLibScript.get_strict_formula() that, raises
     # an exception if there are push/pop calls. To obtain the formula at
@@ -136,7 +136,7 @@ def main_file_test():
     f = script.get_last_formula()
     print(f)
 
-    # Finally, we serialize the script back into SMT-Lib format. This can
+    # Finally, we serialize the script back into SAT_SMT-Lib format. This can
     # be dumped into a file (see SmtLibScript.to_file). The flag daggify,
     # specifies whether the printing is done as a DAG or as a tree.
     buf_out = StringIO()
@@ -149,7 +149,7 @@ def main_file_test():
     # dependent. For example, VMT uses annotations to identify two
     # expressions as 1) the Transition Relation and 2) Initial Condition
     #
-    # Here we pretend that we make up a ficticious Weighted SMT format
+    # Here we pretend that we make up a ficticious Weighted SAT_SMT format
     # and label .def1 with cost 1
     #
     # The class pysmt.smtlib.annotations.Annotations deals with the
@@ -159,13 +159,13 @@ def main_file_test():
     print(ann.all_annotated_formulae("cost"))
     print("*" * 50)
 
-    # Annotations are part of the SMT-LIB standard, and are the
+    # Annotations are part of the SAT_SMT-LIB standard, and are the
     # recommended way to perform inter-operable operations. However, in
     # many cases, we are interested in prototyping some algorithm/idea and
     # need to write the input files by hand. In those cases, using an
-    # extended version of SMT-LIB usually provides a more readable input.
+    # extended version of SAT_SMT-LIB usually provides a more readable input.
     # We provide now an example on how to define a symbolic transition
-    # system as an extension of SMT-LIB.
+    # system as an extension of SAT_SMT-LIB.
     # (A more complete version of this example can be found in :
     # pysmt.tests.smtlib.test_parser_extensibility.py)
     #

@@ -1,4 +1,4 @@
-from SMT.constraints import *
+from SAT_SMT.constraints import *
 
 def sudoku(instance):
     r9 = range(9)

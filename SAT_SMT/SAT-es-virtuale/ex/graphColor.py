@@ -1,4 +1,4 @@
-from SMT.constraints import *
+from SAT_SMT.constraints import *
 
 """
 Given a graph (v1,...,vn,E) and d colors, we wanna assign a color to each vertex s.t.:
