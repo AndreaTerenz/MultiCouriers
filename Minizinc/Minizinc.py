@@ -1,47 +1,36 @@
-import os
-import numpy as np
-import math
-import itertools
-import json
-import time
-import math
-
-INSTANCE = 4
-Inst = os.listdir("../Instances")
-inst_n = str(INSTANCE)
-if INSTANCE < 10:
-    inst_n = "0" + inst_n
-f = open("../Instances/inst" + inst_n + ".dat", "r")
-Lines = f.readlines()
-TIME_START = time.time()
-m = int(Lines[0])  # N. of couriers
-n = int(Lines[1])  # N. of packages
-if m > n:
-    m = n  # No need for extra couriers
-load = [int(x) for x in Lines[2].split()]
-load.sort()
-size = [int(x) for x in Lines[3].split()]
-
-dist_table = np.zeros(shape=(len(Lines) - 4, len([int(x) for x in Lines[4].split()]))).astype(int)
-for j in range(4, len(Lines)):
-    dist_table[j - 4, :] = [int(x) for x in Lines[j].split()]
-f.close()
-
+import datetime
+from timeit import default_timer as timer
 from minizinc import Instance, Model, Solver
+import sys
+sys.path.append('../MultiCouriers')
+import mcutils
 
-model = Model("BaseModel Improved.mzn")
-gecode = Solver.lookup("gecode")
-instance = Instance(gecode, model)
 
-print(type(m), type(n), type(load), type(size), type(dist_table))
+def main():
+    m, n, load, size, dist_table = mcutils.read_inst(sys.argv[1])
 
-instance["m"] = m
-instance["n"] = n
-instance["load"] = load
-instance["size"] = size
-instance["dist"] = dist_table
+    model = Model("BaseModel Improved.mzn")
+    solver = "gecode"
+    gecode = Solver.lookup(solver)
+    instance = Instance(gecode, model)
+    instance["m"] = m
+    instance["n"] = n
+    instance["load"] = load
+    instance["size"] = size
+    instance["dist"] = dist_table
 
-print(m, n, load, size, dist_table)
+    start = timer()
+    load.sort()
+    result = instance.solve(processes=8, optimisation_level=2, timeout=datetime.timedelta(seconds=300-(timer()-start)))
+    end = timer()
+    print(f"Done in {end - start:.3f} seconds")
 
-result = instance.solve(processes=8, optimisation_level=2)
-print(result)
+    if str(result.status) is not "UNKNOWN":
+        mcutils.print_result(result["Tours"], result.status, instance)
+        mcutils.print_json(result["Tours"], result.status, "CP with " + solver, sys.argv[1][-6:-4], end - start)
+    else:
+        mcutils.print_empty_json("CP with " + solver, sys.argv[1][-6:-4])
+
+
+if __name__ == '__main__':
+    main()
