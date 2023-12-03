@@ -99,7 +99,7 @@ def print_result(results, status, instance):
                 print("--", end=" ")
 
             travelled += dists[last_stop][v-1]
-            last_stop = v
+            last_stop = v-1
 
         print(f"\t carried: {tot:2} - travelled: {travelled}")
         assert tot <= load_sizes[i], f"Load constraint violated for courier {i}"
@@ -113,3 +113,11 @@ def print_result(results, status, instance):
     assert deliv_set_len == n, "Not all items were delivered"
 
     print("All items delivered exactly once")
+
+
+def move_zeros_to_end(arr):
+    for i in range(arr.shape[0]):
+        non_zeros = arr[i, arr[i] != 0]
+        zeros = arr[i, arr[i] == 0]
+        arr[i] = np.concatenate((non_zeros, zeros))
+    return arr
