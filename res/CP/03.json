@@ -1,1 +1,1 @@
-{"approach": "CP with gecode", "time": 1, "optimal": true, "solution": [[7, 1], [6, 3], [5, 4, 2]]}
+{"CP with gecode": {"time": 1, "optimal": true, "obj": 12, "sol": [[7, 1], [6, 3], [5, 4, 2]]}}

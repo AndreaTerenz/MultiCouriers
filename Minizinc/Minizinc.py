@@ -25,9 +25,9 @@ def main():
     end = timer()
     print(f"Done in {end - start:.3f} seconds")
 
-    if str(result.status) is not "UNKNOWN":
-        mcutils.print_result(result["Tours"], result.status, instance)
-        mcutils.print_json(result["Tours"], result.status, "CP with " + solver, sys.argv[1][-6:-4], end - start)
+    if str(result.status) != "UNKNOWN":
+        obj = mcutils.print_result(result["Tours"], result.status, instance)
+        mcutils.print_json(result["Tours"], obj, result.status, "CP with " + solver, sys.argv[1][-6:-4], end - start)
     else:
         mcutils.print_empty_json("CP with " + solver, sys.argv[1][-6:-4])
 

@@ -1,1 +1,1 @@
-{"approach": "MIP with CBC", "time": 0, "optimal": true, "solution": [[2], [1, 3]]}
+{"MIP with CBC": {"time": 0, "optimal": true, "obj": 206.0, "sol": [[2], [1, 3]]}}

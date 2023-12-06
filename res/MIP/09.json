@@ -1,1 +1,1 @@
-{"approach": "MIP with CBC", "time": 10, "optimal": true, "solution": [[1], [12], [10], [7], [9], [6], [11], [5], [3], [2, 4, 8, 13]]}
+{"MIP with CBC": {"time": 63, "optimal": true, "obj": 436.0, "sol": [[11], [4], [6], [10], [13], [1], [12], [8], [5], [2, 3, 7, 9]]}}

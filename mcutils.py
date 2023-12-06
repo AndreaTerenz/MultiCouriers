@@ -2,29 +2,41 @@ import pathlib
 import json
 import re
 import numpy as np
+import os
 
 
-def print_json(sol, status, approach, instance_n, elapsed_time):
+def print_json(sol, obj, status, approach, instance_n, elapsed_time):
     optimality = str(status) == "OPTIMAL_SOLUTION"
     if elapsed_time >= 300:
         optimality = False
         elapsed_time = 300
 
+    root = pathlib.Path.cwd().parent
+    path = root.joinpath("res").joinpath(approach[0:3].strip())
+    if (path.joinpath(str(instance_n)+'.json')).exists():
+        with open(path.joinpath(str(instance_n)+'.json'), 'r') as file:
+            data = json.load(file)
+            if approach in data:
+                if data[approach]["time"] <= int(elapsed_time) and data[approach]["obj"] <= obj:
+                    return
+                else:
+                    os.remove(path.joinpath(str(instance_n)+'.json'))
+
     empty = np.min(np.stack(sol))
     for c in range(len(sol)):
         sol[c] = list(filter(lambda a: a != empty, sol[c]))
-    data = {"approach": approach, "time": int(elapsed_time), "optimal": optimality, "solution": sol}
+    data = {str(approach): {"time": int(elapsed_time), "optimal": optimality, "obj": obj, "sol": sol}}
 
-    root = pathlib.Path.cwd().parent
-    path = root.joinpath("res").joinpath(approach[0:3].strip())
     with open(path.joinpath(str(instance_n)+'.json'), 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False)
 
 
 def print_empty_json(approach, instance_n):
-    data = {"approach": approach, "time": 300, "optimal": False, "solution": []}
+    data = {str(approach): {"time": 300, "optimal": False, "obj": None, "solution": []}}
     root = pathlib.Path.cwd().parent
     path = root.joinpath("res").joinpath(approach[0:3].strip())
+    if (path.joinpath(str(instance_n) + '.json')).exists():
+        return
     with open(path.joinpath(str(instance_n) + '.json'), 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False)
 
@@ -82,6 +94,7 @@ def print_result(results, status, instance):
         return
     delivered = []
 
+    obj = 0
     for i in range(m):
         print(f"Courier {i}: ", end="")
 
@@ -99,6 +112,7 @@ def print_result(results, status, instance):
                 print("--", end=" ")
 
             travelled += dists[last_stop][v-1]
+            obj = max(travelled, obj)
             last_stop = v-1
 
         print(f"\t carried: {tot:2} - travelled: {travelled}")
@@ -113,6 +127,7 @@ def print_result(results, status, instance):
     assert deliv_set_len == n, "Not all items were delivered"
 
     print("All items delivered exactly once")
+    return obj
 
 
 def move_zeros_to_end(arr):

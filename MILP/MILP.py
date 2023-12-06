@@ -3,7 +3,7 @@ import itertools
 from timeit import default_timer as timer
 import sys
 import threading
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 sys.path.append('../MultiCouriers')
 import mcutils
 
@@ -27,7 +27,7 @@ def write_solution(m, n, Booleans):
     return res
 
 
-def print_output(Assignments, status, instance, solver, time):
+def print_output(Assignments, status, obj, instance, solver, time):
     solution = "FEASIBLE"
     if status.value == 0:
         solution = "OPTIMAL_SOLUTION"
@@ -35,7 +35,7 @@ def print_output(Assignments, status, instance, solver, time):
     tours = np.multiply(tours, np.arange(len(tours[0])) + 1)[:, :-1]  # Remove origin from results
     tours = mcutils.move_zeros_to_end(tours)
     mcutils.print_result(tours, status, instance)
-    mcutils.print_json(tours.tolist(), solution, "MIP with " + str(solver), sys.argv[1][-6:-4], time)
+    mcutils.print_json(tours.tolist(), obj, solution, "MIP with " + str(solver), sys.argv[1][-6:-4], time)
 
 
 def main():
@@ -65,25 +65,28 @@ def main():
     for l in range(m):
         model += OBJ_VAL >= Distances[l]
     model.objective = minimize(OBJ_VAL)
-    # model.objective = minimize(xsum(Distances))
 
     for l in range(m):
         for j in range(n + 1):
-            model += xsum(np.concatenate((Booleans[l, j, :], Booleans[l, :, j]))) == 2 * Assignments[
-                l, j]  # Every house is part of either 2 or 0 travels :D
+            model += xsum(np.concatenate((Booleans[l, j, :], Booleans[l, :, j]))) == 2 * Assignments[l, j]
+            # Every house is part of either 2 or 0 travels
+            model += xsum(Booleans[l, j, :]) <= 1
+            model += xsum(Booleans[l, :, j]) <= 1
+            # Each courier enters & leaves each house once
 
-    for l in range(n):
-        model += xsum(np.reshape(np.concatenate((Booleans[:, l, :], Booleans[:, :, l])), -1)) == 2
+    for p in range(n):
+        model += xsum(np.reshape(np.concatenate((Booleans[:, p, :], Booleans[:, :, p])), -1)) == 2
         # Deliver every package, only once (checking that the sum of its indexes is 2 over all m)
-    model += xsum(np.reshape(np.concatenate((Booleans[:, n, :], Booleans[:, :, n])),
-                             -1)) == 2 * m  # Not perfect, assumes every courier moves
+    model += xsum(np.reshape(np.concatenate((Booleans[:, n, :], Booleans[:, :, n])), -1)) == 2 * m
     model += xsum(np.reshape(Assignments, -1)) == n + m  # Redundant constraint
 
     for l in range(m):
         for x in range(n):
             for y in range(n):
                 model += Booleans[l, x, y] + Booleans[l, y, x] <= 1
-                # No looping between houses
+            model += Booleans[l, x, x] == 0
+        model += Booleans[l, n, n] == 0
+        # No looping between houses
 
         model += xsum(np.reshape(np.multiply(Booleans[l, :, :], dist_table), -1)) == Distances[l]
         # Calculate Distances
@@ -91,31 +94,29 @@ def main():
         model += xsum(Assignments[l, :-1] * size) <= load[l]
         # Load size
 
-        model += xsum([Booleans[l, x, y] for x in range(n) for y in range(n) if x >= y]) == 0
-        model += Booleans[l, n, n] == 0
-        # Symmetry breaking + No looping between houses
+        if l != 0:
+            model += xsum(Assignments[l, :]) >= xsum(Assignments[l-1, :])
+            # Symmetry breaking (due to ordered load_size)
 
     def avoid_loops(k, mip_model):
-        for loop in range(2, n - m - 1):
+        for loop in range(2, n - m + 1):
             to_be_added = []
             for nodes in itertools.combinations(range(n), loop):  # Of size loop, in range n
                 arcs = np.array([])
-                for x in itertools.combinations(nodes, 2):
+                for x in itertools.permutations(nodes, 2):
                     arcs = np.append(arcs, Booleans[k, :, :][x])
                 to_be_added.append((xsum(arcs) <= loop - 1))
             lock.acquire()
             for eq in to_be_added:
                 mip_model += eq
             lock.release()
-            print(f"Thread {k}, did loop {loop}")
-            # Avoid separate loops (?)
 
     lock = threading.Lock()
     args_list = [(k, model) for k in range(m)]
-    with ThreadPoolExecutor(max_workers=len(args_list)) as executor:
+    with ThreadPoolExecutor(max_workers=len(args_list)) as executor:  # 'with' is necessary here to wait for completion
         executor.map(lambda args: avoid_loops(*args), args_list)
 
-    print("Done! Moving on...")
+    print("Preprocessing done!")
     model.threads = 8
     mid = timer() - start
     if mid > 300:
@@ -125,15 +126,15 @@ def main():
     status = model.optimize(max_seconds=300 - mid)
     end = timer() - start
     if status == OptimizationStatus.OPTIMAL:
-        print(f'optimal solution cost {model.objective_value} found')
+        print(f'Optimal solution cost {model.objective_value} found')
     print(f'whole vector: {[i.x for i in Distances]}')
-    print(f'booleans: \n{np.reshape([b.x for b in np.reshape(Booleans, -1)], Booleans.shape)}')
-    print(f"TEMP: {np.reshape([t.x for t in np.reshape(Assignments, -1)], Assignments.shape)}")
+    # print(f'booleans: \n{np.reshape([b.x for b in np.reshape(Booleans, -1)], Booleans.shape)}')
+    print(f"Assignments: {np.reshape([t.x for t in np.reshape(Assignments, -1)], Assignments.shape)}")
     print("Elapsed time:", round(end, 2), "seconds, of which", round(mid, 2), "were pre-processing.")
 
     if status.value < 5:
         instance = {"m": m, "n": n, "load": load, "size": size, "dist": dist_table}
-        print_output(Assignments, status, instance, solver, int(end))
+        print_output(Assignments, status, model.objective_value, instance, solver, int(end))
     else:
         mcutils.print_empty_json("MIP with " + str(solver), sys.argv[1][-6:-4])
 
