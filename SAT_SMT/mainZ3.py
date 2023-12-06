@@ -1,40 +1,9 @@
 from constraints import *
-from timeit import default_timer as timer
 from sys import argv
-from mcputils import load_MCP, check_solver
-
-def to_z3array(values, name, val_sort, idx_sort=IntSort()):
-    output = Array(name, idx_sort, val_sort)
-    for idx, ls in enumerate(values):
-        output = Store(output, idx, ls)
-
-    return output
-
-def min_z3(values):
-    m = values[0]
-    for val in values[1:]:
-        m = If(val < m, val, m)
-    return m
-
-def max_z3(values):
-    m = values[0]
-    for val in values[1:]:
-        m = If(val > m, val, m)
-    return m
+from mcputils import *
 
 def main():
-    inst_path = argv[1]
-    inst = load_MCP(inst_path)
-
-    m = inst["n_couriers"]
-    n = inst["n_items"]
-
-    print(f"Couriers: {m}")
-    print(f"Items: {n}")
-    print(f"Load limits: {inst['load_sizes']}")
-    print(f"Item sizes: {inst['item_sizes']}")
-    print("Distances:")
-    print(*inst["distances"], sep="\n")
+    m, n, loads, sizes, dist_table, inst = load_MCP(argv[1])
 
     # Every courier must deliver at least one item
     # so we know each will deliver at most N-M+1 items
@@ -44,8 +13,8 @@ def main():
 
     ORIGIN = -1
 
-    load_sizes = to_z3array(inst["load_sizes"], "load_sizes", IntSort())
-    item_sizes = to_z3array(inst["item_sizes"], "item_sizes", IntSort())
+    load_sizes = to_z3array(loads, "load_sizes", IntSort())
+    item_sizes = to_z3array(sizes, "item_sizes", IntSort())
 
     X = [[Int(f"x_{i}_{k}") for k in rk] for i in ri]
 
@@ -69,9 +38,9 @@ def main():
     d = Function("dist", IntSort(), IntSort(), IntSort())
 
     s.add(d(-1, -1) == 0) # Can't hurt...
-    s.add(*[d(-1, j) == inst["distances"][-1][j] for j in range(n)])
-    s.add(*[d(j, -1) == inst["distances"][j][-1] for j in range(n)])
-    s.add(*[d(j1, j2) == inst["distances"][j1][j2] for j1 in range(n) for j2 in range(n)])
+    s.add(*[d(-1, j) == dist_table[-1][j] for j in range(n)])
+    s.add(*[d(j, -1) == dist_table[j][-1] for j in range(n)])
+    s.add(*[d(j1, j2) == dist_table[j1][j2] for j1 in range(n) for j2 in range(n)])
 
     total_dist = [Int(f"td_{i}") for i in ri]
     s.add([total_dist[i] == d(-1, X[i][0]) + Sum([d(X[i][k], X[i][k+1]) for k in range(n-m)]) + d(X[i][-1], -1) for i in ri])
@@ -83,17 +52,15 @@ def main():
         s.minimize(total_dist[i])"""
     z = s.minimize(max_z3(total_dist))
 
-    start = timer()
-    res = s.check()
-    end = timer()
-
-    print(f"Done in {end - start:.3f} seconds")
+    res = run_solver(s, lambda _s : _s.check())
 
     model = s.model()
 
-    check_solver(res, X, inst, optim_value=z.value(),
-                 get_val_lambda=lambda x : model.eval(x).as_long(),
-                 unsat_val=unsat)
+    X_values = [[model.eval(X[i][k]).as_long() for k in range(n - m + 1)] for i in range(m)]
+
+    res = ModelResult.Satisfied if res == sat else ModelResult.Unsatisfied
+
+    check_solver(res, X_values, inst, optim_value=z.value())
 
 if __name__ == '__main__':
     main()

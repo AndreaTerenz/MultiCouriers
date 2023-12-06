@@ -3,8 +3,8 @@ from multiprocessing import freeze_support
 from timeit import default_timer as timer
 
 from pysmt.shortcuts import *
+from mcputils import *
 
-from mcputils import load_MCP, check_solver
 
 def at_least_one(bool_vars):
     return Or(bool_vars)
@@ -39,20 +39,7 @@ def fix_symb_range(symb, minV, maxV, include_min = True, include_max = False):
     return And(l(symb, Int(minV)), u(symb, Int(maxV)))
 
 def main():
-    try:
-        inst = load_MCP("instance.mcp")
-    except:
-        inst = load_MCP("../instance.mcp")
-
-    m = inst["n_couriers"]
-    n = inst["n_items"]
-    load_sizes_inst = inst["load_sizes"]
-    item_sizes_inst = inst["item_sizes"]
-
-    print(f"Couriers: {m}")
-    print(f"Items: {n}")
-    print(f"Load limits: {load_sizes_inst}")
-    print(f"Item sizes: {item_sizes_inst}")
+    m, n, loads, sizes, _, inst = load_MCP("instance.mcp")
 
     max_items_per_courier = n - m + 1
     rk = range(max_items_per_courier)
@@ -60,8 +47,8 @@ def main():
 
     ORIGIN = -1
 
-    load_sizes = to_symbol_array(load_sizes_inst, "load_sizes")
-    item_sizes = to_symbol_array(item_sizes_inst, "item_sizes")
+    load_sizes = to_symbol_array(loads, "load_sizes")
+    item_sizes = to_symbol_array(sizes, "item_sizes")
 
     # X_ik := which distrib point should courier I be at for their K-th stop?
     # In other words, which should be the K-th item delivered by courier I?
@@ -88,18 +75,13 @@ def main():
     s.add_assertion(And(deliver_once_constr))
     s.add_assertion(And(at_least_one_constr))
 
-    print("*" * 50)
-    print(f"Solving with {solver_name}...", end="")
+    res = run_solver(s, lambda _s : _s.solve())
 
-    start = timer()
-    res = s.solve()
-    end = timer()
+    X_values = [[s.get_value(X[i][k]).constant_value() for k in range(n - m + 1)] for i in range(m)]
 
-    print(f"done in {end - start:.3f} seconds")
+    res = ModelResult.Satisfied if res else ModelResult.Unsatisfied
 
-    check_solver(res, X, inst,
-                 get_val_lambda=lambda x: s.get_value(x).constant_value(),
-                 unsat_val=False)
+    check_solver(res, X_values, inst)
 
 if __name__ == '__main__':
     freeze_support()

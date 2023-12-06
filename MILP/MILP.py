@@ -3,9 +3,11 @@ import itertools
 from timeit import default_timer as timer
 import sys
 import threading
-from concurrent.futures import ThreadPoolExecutor, wait
+from concurrent.futures import ThreadPoolExecutor
+
 sys.path.append('../MultiCouriers')
-import mcutils
+#import mcutils as utils
+import mcputils as utils
 
 
 def give_arcs(M, nodes):
@@ -29,13 +31,21 @@ def write_solution(m, n, Booleans):
 
 def print_output(Assignments, status, obj, instance, solver, time):
     solution = "FEASIBLE"
-    if status.value == 0:
+    if status == OptimizationStatus.OPTIMAL:
         solution = "OPTIMAL_SOLUTION"
     tours = np.vectorize(lambda v: int(v.x))(Assignments)
     tours = np.multiply(tours, np.arange(len(tours[0])) + 1)[:, :-1]  # Remove origin from results
-    tours = mcutils.move_zeros_to_end(tours)
-    mcutils.print_result(tours, status, instance)
-    mcutils.print_json(tours.tolist(), obj, solution, "MIP with " + str(solver), sys.argv[1][-6:-4], time)
+    tours = utils.move_zeros_to_end(tours)
+
+    res = utils.ModelResult.Unknown
+
+    match status:
+        case OptimizationStatus.FEASIBLE: res = utils.ModelResult.Feasible
+        case OptimizationStatus.OPTIMAL: res = utils.ModelResult.Satisfied
+        case OptimizationStatus.INFEASIBLE: res = utils.ModelResult.Unsatisfied
+
+    utils.check_solver(res, tours, instance, dumb_indexes=True)
+    utils.print_json(tours.tolist(), obj, solution, "MIP with " + str(solver), sys.argv[1][-6:-4], time)
 
 
 def main():
@@ -44,7 +54,7 @@ def main():
           (aka, one full connection table of booleans for selecting the path)
           -> Remove 'Assignments', use only the table and build constraints on top of it
     """
-    m, n, load, size, dist_table = mcutils.read_inst(sys.argv[1])
+    m, n, load, size, dist_table, instance = utils.load_MCP(sys.argv[1])
     dist_table = np.stack(dist_table)
     solver = CBC
     model = Model(sense=MINIMIZE, solver_name=solver)
@@ -121,7 +131,7 @@ def main():
     mid = timer() - start
     if mid > 300:
         print("Preprocessing took the whole time available.")
-        mcutils.print_empty_json("MIP with " + str(solver), sys.argv[1][-6:-4])
+        utils.print_empty_json("MIP with " + str(solver), sys.argv[1][-6:-4])
         return
     status = model.optimize(max_seconds=300 - mid)
     end = timer() - start
@@ -133,10 +143,9 @@ def main():
     print("Elapsed time:", round(end, 2), "seconds, of which", round(mid, 2), "were pre-processing.")
 
     if status.value < 5:
-        instance = {"m": m, "n": n, "load": load, "size": size, "dist": dist_table}
         print_output(Assignments, status, model.objective_value, instance, solver, int(end))
     else:
-        mcutils.print_empty_json("MIP with " + str(solver), sys.argv[1][-6:-4])
+        utils.print_empty_json("MIP with " + str(solver), sys.argv[1][-6:-4])
 
 
 if __name__ == '__main__':
