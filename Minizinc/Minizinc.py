@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 from minizinc import Instance, Model, Solver
 import sys
 
-sys.path.append('../MultiCouriers')
+#sys.path.append('../MultiCouriers')
 #import mcutils as utils
 import mcputils as utils
 

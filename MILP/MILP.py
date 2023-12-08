@@ -5,7 +5,8 @@ import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
-sys.path.append('../MultiCouriers')
+#sys.path.append('../MultiCouriers')
+#import mcutils as utils
 import mcputils as utils
 
 

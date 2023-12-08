@@ -116,8 +116,10 @@ def check_solver(result, vars_values, instance, optim_value=None, expected_res=N
                 print("--", end=" ")
 
             travelled += dists[last_stop][v]
-            obj = max(travelled, obj)
             last_stop = v
+
+        travelled += dists[last_stop][-1]
+        obj = max(travelled, obj)
 
         print(f"\t carried: {tot:2} - travelled: {travelled}")
         assert not print_only or tot <= load_sizes[i], f"Load constraint violated for courier {i}"
