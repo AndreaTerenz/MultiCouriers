@@ -6,7 +6,6 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.append('../MultiCouriers')
-#import mcutils as utils
 import mcputils as utils
 
 
@@ -29,11 +28,11 @@ def write_solution(m, n, Booleans):
     return res
 
 
-def print_output(Assignments, status, obj, instance, solver, time):
+def print_output(assignments, status, obj, instance, solver, time):
     solution = "FEASIBLE"
     if status == OptimizationStatus.OPTIMAL:
         solution = "OPTIMAL_SOLUTION"
-    tours = np.vectorize(lambda v: int(v.x))(Assignments)
+    tours = np.vectorize(lambda v: int(v.x))(assignments)
     tours = np.multiply(tours, np.arange(len(tours[0])) + 1)[:, :-1]  # Remove origin from results
     tours = utils.move_zeros_to_end(tours)
 
@@ -44,7 +43,7 @@ def print_output(Assignments, status, obj, instance, solver, time):
         case OptimizationStatus.OPTIMAL: res = utils.ModelResult.Satisfied
         case OptimizationStatus.INFEASIBLE: res = utils.ModelResult.Unsatisfied
 
-    utils.check_solver(res, tours, instance, dumb_indexes=True)
+    utils.check_solver(res, tours, instance)
     utils.print_json(tours.tolist(), obj, solution, "MIP with " + str(solver), sys.argv[1][-6:-4], time)
 
 
@@ -71,9 +70,13 @@ def main():
         [model.add_var(name='temp ' + str(i), var_type=BINARY) for i in range(m * len(dist_table))],
         (m, len(dist_table)))
     OBJ_VAL = model.add_var(name='final val', var_type=INTEGER, lb=0)
+    MAX_DIST = 0
+    for d in range(n):
+        MAX_DIST = max(MAX_DIST, min(dist_table[d][n], dist_table[n][d]))
 
     for l in range(m):
         model += OBJ_VAL >= Distances[l]
+    model += OBJ_VAL >= MAX_DIST
     model.objective = minimize(OBJ_VAL)
 
     for l in range(m):

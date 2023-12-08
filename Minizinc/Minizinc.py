@@ -18,37 +18,27 @@ def main():
     solver = "gecode"
     gecode = Solver.lookup(solver)
     instance = Instance(gecode, model)
-    instance["m"] = m
-    instance["n"] = n
-    instance["load"] = load
-    instance["size"] = size
-    instance["dist"] = dist_table
+    instance["n_couriers"] = m
+    instance["n_items"] = n
+    instance["load_sizes"] = load
+    instance["item_sizes"] = size
+    instance["distances"] = dist_table
 
     start = timer()
     load.sort()
     result = instance.solve(processes=8, optimisation_level=2, timeout=datetime.timedelta(seconds=300-(timer()-start)))
     end = timer()
     print(f"Done in {end - start:.3f} seconds")
-
     res = str(result.status)
 
+    match res:
+        case "OPTIMAL_SOLUTION": res = utils.ModelResult.Satisfied
+        case "UNSATISFIABLE": res = utils.ModelResult.Unsatisfied
+        case "SATISFIED": res = utils.ModelResult.Feasible
+        case "UNKNOWN": res = utils.ModelResult.Unknown
+
     if res != "UNKNOWN":
-        # CHE SCHIFOOOOOOOOOOOOOOOOOOOOOOOO
-        data = {
-            "n_items": instance["n"],
-            "n_couriers": instance["m"],
-            "load_sizes": instance["load"],
-            "item_sizes": instance["size"],
-            "distances": instance["dist"]
-        }
-
-        match res:
-            case "OPTIMAL_SOLUTION" : res = utils.ModelResult.Satisfied
-            case "UNSATISFIABLE" : res = utils.ModelResult.Unsatisfied
-            case "SATISFIED" : res = utils.ModelResult.Feasible
-            case "UNKOWN" : res = utils.ModelResult.Unknown
-
-        obj = utils.check_solver(res, result["Tours"], data, dumb_indexes=True)
+        obj = utils.check_solver(res, result["Tours"], instance)
         utils.print_json(result["Tours"], obj, result.status, "CP with " + solver, sys.argv[1][-6:-4], end - start)
     else:
         utils.print_empty_json("CP with " + solver, sys.argv[1][-6:-4])
