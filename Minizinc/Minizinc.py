@@ -15,7 +15,7 @@ def main():
     file_dir = os.path.dirname(os.path.abspath(__file__))
     model = Model(os.path.join(file_dir, "BaseModel Improved.mzn"))
 
-    solver = "chuffed"
+    solver = "gecode"
     gecode = Solver.lookup(solver)
     instance = Instance(gecode, model)
     instance["n_couriers"] = m
@@ -37,7 +37,7 @@ def main():
         case "SATISFIED": res = utils.ModelResult.Feasible
         case "UNKNOWN": res = utils.ModelResult.Unknown
 
-    if res != "UNKNOWN":
+    if res != utils.ModelResult.Unknown:
         obj = utils.check_solver(res, result["Tours"], instance)
         utils.print_json(result["Tours"], obj, result.status, "CP with " + solver, sys.argv[1][-6:-4], end - start)
     else:

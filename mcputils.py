@@ -183,16 +183,11 @@ def print_json(sol, obj, status, approach, instance_n, elapsed_time):
     if json_path.exists():
         with open(json_path, 'r+') as file:
             js = json.load(file)
-            print("with")
             if approach in js:
-                print("approach")
                 if js[approach]["time"] <= int(elapsed_time) and js[approach]["obj"] <= obj:
-                    print("return")
                     return
-                print("del")
                 del js[approach]
-            print("data")
-            js[approach] = data
+            js[approach] = data[approach]
             file.seek(0)
             json.dump(js, file, ensure_ascii=False)
     else:
@@ -202,12 +197,20 @@ def print_json(sol, obj, status, approach, instance_n, elapsed_time):
 
 def print_empty_json(approach, instance_n):
     data = {str(approach): {"time": 300, "optimal": False, "obj": None, "solution": []}}
-    root = pathlib.Path.cwd().parent
+    root = pathlib.Path.cwd()
     path = root.joinpath("res").joinpath(approach[0:3].strip())
-    if (path.joinpath(str(instance_n) + '.json')).exists():
-        return
-    with open(path.joinpath(str(instance_n) + '.json'), 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False)
+    json_path = path.joinpath(f'{instance_n}.json')
+    if json_path.exists():
+        with open(json_path, 'r+') as file:
+            js = json.load(file)
+            if approach in js:
+                return
+            js[approach] = data[approach]
+            file.seek(0)
+            json.dump(js, file, ensure_ascii=False)
+    else:
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
 
 
 def move_zeros_to_end(arr):

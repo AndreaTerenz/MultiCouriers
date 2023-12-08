@@ -1,1 +1,1 @@
-{"CP with gecode": {"time": 300, "optimal": false, "obj": null, "solution": []}}
+{"CP with gecode": {"time": 300, "optimal": false, "obj": null, "solution": []}, "CP with chuffed": {"time": 300, "optimal": false, "obj": 287, "sol": [[11, 16], [17, 7, 5], [3, 12, 2], [4, 14, 15], [9, 10, 1], [8, 13, 6]]}}
