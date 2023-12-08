@@ -172,22 +172,30 @@ def print_json(sol, obj, status, approach, instance_n, elapsed_time):
     path = root.joinpath("res").joinpath(approach[0:3].strip())
     json_path = path.joinpath(f'{instance_n}.json')
 
-    if json_path.exists():
-        with open(json_path, 'r') as file:
-            data = json.load(file)
-            if approach in data:
-                if data[approach]["time"] <= int(elapsed_time) and data[approach]["obj"] <= obj:
-                    return
-        os.remove(json_path)
-
     empty = np.min(np.stack(sol))
     if empty != 0:
         sol = list(np.array(sol) + 1)
     sol = [list(filter(lambda a: a != empty, sol[c])) for c in range(len(sol))]
     data = {str(approach): {"time": int(elapsed_time), "optimal": optimality, "obj": obj, "sol": sol}}
 
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False)
+    if json_path.exists():
+        with open(json_path, 'r+') as file:
+            js = json.load(file)
+            print("with")
+            if approach in js:
+                print("approach")
+                if js[approach]["time"] <= int(elapsed_time) and js[approach]["obj"] <= obj:
+                    print("return")
+                    return
+                print("del")
+                del js[approach]
+            print("data")
+            js[approach] = data
+            file.seek(0)
+            json.dump(js, file, ensure_ascii=False)
+    else:
+        with open(json_path, 'w', encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False)
 
 
 def print_empty_json(approach, instance_n):

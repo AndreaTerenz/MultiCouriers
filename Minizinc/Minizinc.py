@@ -15,7 +15,7 @@ def main():
     file_dir = os.path.dirname(os.path.abspath(__file__))
     model = Model(os.path.join(file_dir, "BaseModel Improved.mzn"))
 
-    solver = "gecode"
+    solver = "chuffed"
     gecode = Solver.lookup(solver)
     instance = Instance(gecode, model)
     instance["n_couriers"] = m
