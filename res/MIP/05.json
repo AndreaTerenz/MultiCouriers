@@ -1,1 +1,1 @@
-{"MIP with CBC": {"time": 0, "optimal": true, "obj": 206.0, "sol": [[2], [1, 3]]}, "MIP with gecode": {"time": 0, "optimal": true, "obj": 206.0, "sol": [[2], [1, 3]]}}
+{"MIP with CBC": {"time": 0, "optimal": true, "obj": 206.0, "sol": [[2], [1, 3]]}, "MIP with gecode": {"time": 0, "optimal": true, "obj": 206.0, "sol": [[2], [1, 3]]}, "MIP with highs": {"time": 0, "optimal": true, "obj": 206.0, "sol": [[2], [1, 3]]}}}

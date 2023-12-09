@@ -1,1 +1,1 @@
-{"MIP with CBC": {"time": 300, "optimal": false, "obj": null, "solution": []}, "MIP with gecode": {"time": 300, "optimal": false, "obj": null, "solution": []}}
+{"MIP with CBC": {"time": 300, "optimal": false, "obj": null, "solution": []}, "MIP with gecode": {"time": 300, "optimal": false, "obj": null, "solution": []}, "MIP with highs": {"time": 300, "optimal": false, "obj": null, "solution": []}}

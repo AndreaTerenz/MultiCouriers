@@ -26,23 +26,19 @@ def write_solution(m, n, Booleans):
     return res
 
 
-def print_output(assignments, status, obj, instance, solver, time):
-    solution = "FEASIBLE"
-    if status == OptimizationStatus.OPTIMAL:
-        solution = "OPTIMAL_SOLUTION"
+def print_output(assignments, status, obj, instance, instance_n, solver, time):
     tours = np.vectorize(lambda v: int(v.x))(assignments)
     tours = np.multiply(tours, np.arange(len(tours[0])) + 1)[:, :-1]  # Remove origin from results
     tours = utils.move_zeros_to_end(tours)
 
     res = utils.ModelResult.Unknown
-
     match status:
         case OptimizationStatus.FEASIBLE: res = utils.ModelResult.Feasible
         case OptimizationStatus.OPTIMAL: res = utils.ModelResult.Satisfied
         case OptimizationStatus.INFEASIBLE: res = utils.ModelResult.Unsatisfied
 
     utils.check_solver(res, tours, instance)
-    utils.print_json(tours.tolist(), obj, solution, "MIP with " + str(solver), sys.argv[1][-6:-4], time)
+    utils.print_json(tours.tolist(), obj, res, "MIP with " + str(solver), instance_n, time)
 
 
 def main(inst_path, solver):
@@ -131,7 +127,7 @@ def main(inst_path, solver):
     mid = timer() - start
     if mid > 300:
         print("Preprocessing took the whole time available.")
-        utils.print_empty_json("MIP with " + str(solver), sys.argv[1][-6:-4])
+        utils.print_empty_json("MIP with " + str(solver), str(inst_path)[-6:-4])
         return
     status = model.optimize(max_seconds=300 - mid)
     end = timer() - start
@@ -142,10 +138,12 @@ def main(inst_path, solver):
     print(f"Assignments: {np.reshape([t.x for t in np.reshape(Assignments, -1)], Assignments.shape)}")
     print("Elapsed time:", round(end, 2), "seconds, of which", round(mid, 2), "were pre-processing.")
 
+    data = {"n_couriers": m, "n_items": n, "load_sizes": load, "item_sizes": size, "distances": dist_table}
     if status.value < 5:
-        print_output(Assignments, status, model.objective_value, instance, solver, int(end))
+        print(status.value)
+        print_output(Assignments, status, model.objective_value, data, str(inst_path)[-6:-4], solver, int(end))
     else:
-        utils.print_empty_json("MIP with " + str(solver), sys.argv[1][-6:-4])
+        utils.print_empty_json("MIP with " + str(solver), str(inst_path)[-6:-4])
 
 
 if __name__ == '__main__':

@@ -1,1 +1,1 @@
-{"MIP with CBC": {"time": 5, "optimal": true, "obj": 226.0, "sol": [[4], [1], [7], [6, 8], [5, 9], [2, 3]]}, "MIP with gecode": {"time": 5, "optimal": true, "obj": 226.0, "sol": [[5], [8], [3], [1, 4], [2, 7], [6, 9]]}}
+{"MIP with CBC": {"time": 5, "optimal": true, "obj": 226.0, "sol": [[4], [1], [7], [6, 8], [5, 9], [2, 3]]}, "MIP with gecode": {"time": 5, "optimal": true, "obj": 226.0, "sol": [[5], [8], [3], [1, 4], [2, 7], [6, 9]]}, "MIP with highs": {"time": 4, "optimal": true, "obj": 226.0, "sol": [[5], [8], [3], [1, 4], [2, 7], [6, 9]]}}}

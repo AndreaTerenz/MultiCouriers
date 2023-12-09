@@ -39,7 +39,7 @@ def main(inst_path, solver_name):
 
     if res != utils.ModelResult.Unknown:
         obj = utils.check_solver(res, result["Tours"], instance)
-        utils.print_json(result["Tours"], obj, result.status, "CP with " + solver_name, str(inst_path)[-6:-4], end - start)
+        utils.print_json(result["Tours"], obj, res, "CP with " + solver_name, str(inst_path)[-6:-4], end - start)
     else:
         utils.print_empty_json("CP with " + solver_name, sys.argv[1][-6:-4])
 

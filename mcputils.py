@@ -17,6 +17,9 @@ class ModelResult(Enum):
 
 
 def print_heading(f):
+    """
+    Prints 50 asterisks to separate outputs neatly.
+    """
     @functools.wraps(f)
     def foo(*args, **kwargs):
         print("*" * 50)  # + f" {name}")
@@ -27,6 +30,18 @@ def print_heading(f):
 
 @print_heading
 def load_MCP(path: str):
+    """
+    Loads instances from absolute or relative path.
+
+    Arguments: {path: str, path to the desired Instance}.
+
+    Returns: {int: number of couriers;
+              int: number of packages;
+              list: maximum load size for each courier;
+              list: size of each package;
+              matrix: distances between houses;
+              dict: all the above in standard form}
+    """
     print(f"Loading instance from: {path}")
     with open(path) as f:
         lines = f.readlines()
@@ -67,6 +82,13 @@ def load_MCP(path: str):
 
 @print_heading
 def run_solver(s, solve_lambda, name="z3"):
+    """
+    Runs a solving process with given solver.
+
+    Arguments: {} # PLEASE FILL TY
+
+    Returns: {ModelResult: result of operation}
+    """
     print(f"Solving with {name}...", end="")
 
     start = timer()
@@ -80,6 +102,18 @@ def run_solver(s, solve_lambda, name="z3"):
 
 @print_heading
 def check_solver(result, vars_values, instance, optim_value=None, expected_res=None, print_only=False):
+    """
+    Checks if the results of the solving process is within the bounds of the problem and prints the output.
+
+    Arguments: {ModelResult: result, output of the solving process;
+                list vars_values: 2D array with the tours of each courier;
+                dict: instance, data of the given problem;
+                int: optim_value, if known, the optimal solution of the problem;
+                list: expected_res, if known, the expected tours for the couriers;
+                bool: print_only, defaults to False}
+
+    Returns: {int: the final value found by the solver}
+    """
     n = instance["n_items"]
     m = instance["n_couriers"]
     load_sizes = instance["load_sizes"]
@@ -143,6 +177,9 @@ def check_solver(result, vars_values, instance, optim_value=None, expected_res=N
 
 
 def to_z3array(values, name, val_sort, idx_sort=IntSort()):
+    """
+    {PLEASE FILL TY}
+    """
     output = Array(name, idx_sort, val_sort)
     for idx, ls in enumerate(values):
         output = Store(output, idx, ls)
@@ -151,6 +188,13 @@ def to_z3array(values, name, val_sort, idx_sort=IntSort()):
 
 
 def min_z3(values):
+    """
+    Finds the minimum value in an array of variables.
+
+    Arguments: {list: values, array of variables} # PLEASE CHECK IF CORRECT TY
+
+    Returns: {int: the minimum value of the array}
+    """
     m = values[0]
     for val in values[1:]:
         m = If(val < m, val, m)
@@ -158,6 +202,13 @@ def min_z3(values):
 
 
 def max_z3(values):
+    """
+    Finds the maximum value in an array of variables.
+
+    Arguments: {list: values, array of variables} # PLEASE CHECK IF CORRECT TY
+
+    Returns: {int: the maximum value of the array}
+    """
     m = values[0]
     for val in values[1:]:
         m = If(val > m, val, m)
@@ -165,7 +216,17 @@ def max_z3(values):
 
 
 def print_json(sol, obj, status, approach, instance_n, elapsed_time):
-    optimality = str(status) == ModelResult.Satisfied
+    """
+    Saves to a JSON file the results of a solver with a given approach and time.
+
+    Arguments: {list: sol, tours of the couriers;
+                int: obj, value of the objective function;
+                ModelResult: status, optimality value for the solution found;
+                str: approach, the solving technique employed;
+                int: instance_n, ID of the instance;
+                int: elapsed_time, time in seconds for preprocessing + solving}
+    """
+    optimality = status == ModelResult.Satisfied
     if elapsed_time >= 300:
         optimality = False
         elapsed_time = 300
@@ -196,6 +257,12 @@ def print_json(sol, obj, status, approach, instance_n, elapsed_time):
 
 
 def print_empty_json(approach, instance_n):
+    """
+    Prints to a JSON file the result of a failed execution.
+
+    Arguments: {str: approach, the solving technique employed;
+                int: instance_n, the ID of the instance}
+    """
     data = {str(approach): {"time": 300, "optimal": False, "obj": None, "solution": []}}
     root = pathlib.Path.cwd()
     path = root.joinpath("res").joinpath(approach[0:3].strip())
@@ -214,6 +281,13 @@ def print_empty_json(approach, instance_n):
 
 
 def move_zeros_to_end(arr):
+    """
+    Moves all 0s present in an array to its tail.
+
+    Arguments: {list: arr, array of numbers to be separated from 0s}
+
+    Returns: {list: array with 0s moved to the tail}
+    """
     for i in range(arr.shape[0]):
         non_zeros = arr[i, arr[i] != 0]
         zeros = arr[i, arr[i] == 0]
