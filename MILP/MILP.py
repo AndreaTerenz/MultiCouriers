@@ -4,9 +4,6 @@ from timeit import default_timer as timer
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
-
-#sys.path.append('../MultiCouriers')
-#import mcutils as utils
 import mcputils as utils
 
 
@@ -48,15 +45,14 @@ def print_output(assignments, status, obj, instance, solver, time):
     utils.print_json(tours.tolist(), obj, solution, "MIP with " + str(solver), sys.argv[1][-6:-4], time)
 
 
-def main():
+def main(inst_path, solver):
     """
     IDEA: One Travelling salesman problem per courier
           (aka, one full connection table of booleans for selecting the path)
           -> Remove 'Assignments', use only the table and build constraints on top of it
     """
-    m, n, load, size, dist_table, instance = utils.load_MCP(sys.argv[1])
+    m, n, load, size, dist_table, instance = utils.load_MCP(inst_path)
     dist_table = np.stack(dist_table)
-    solver = CBC
     model = Model(sense=MINIMIZE, solver_name=solver)
     model.verbose = 0
 
@@ -153,4 +149,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1], sys.argv[2])

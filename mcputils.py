@@ -165,7 +165,7 @@ def max_z3(values):
 
 
 def print_json(sol, obj, status, approach, instance_n, elapsed_time):
-    optimality = str(status) == "OPTIMAL_SOLUTION"
+    optimality = str(status) == ModelResult.Satisfied
     if elapsed_time >= 300:
         optimality = False
         elapsed_time = 300
@@ -184,7 +184,7 @@ def print_json(sol, obj, status, approach, instance_n, elapsed_time):
         with open(json_path, 'r+') as file:
             js = json.load(file)
             if approach in js:
-                if js[approach]["time"] <= int(elapsed_time) and js[approach]["obj"] <= obj:
+                if js[approach]["time"] <= int(elapsed_time) and js[approach]["obj"] <= obj and js[approach]["optimal"]:
                     return
                 del js[approach]
             js[approach] = data[approach]

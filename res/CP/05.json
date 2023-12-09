@@ -1,1 +1,1 @@
-{"CP with gecode": {"time": 0, "optimal": true, "obj": 160, "sol": [[2], [1, 3]]}, "CP with chuffed": {"time": 0, "optimal": true, "obj": 160, "sol": [[2], [1, 3]]}}
+{"CP with gecode": {"time": 0, "optimal": true, "obj": 160, "sol": [[2], [1, 3]]}, "CP with chuffed": {"time": 0, "optimal": true, "obj": 160, "sol": [[2], [1, 3]]}, "CP with highs": {"time": 0, "optimal": false, "obj": 206, "sol": [[2], [1, 3]]}}
