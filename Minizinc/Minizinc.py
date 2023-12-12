@@ -1,18 +1,22 @@
 import datetime
 import os
-from timeit import default_timer as timer
-from minizinc import Instance, Model, Solver
 import sys
+from timeit import default_timer as timer
 
-#import mcputils as utils
+from minizinc import Instance, Model, Solver
+
+# import mcputils as utils
 import utils
 
 
-def main(inst_path, solver_name):
+def main(inst_path, solver_name = ""):
     m, n, load, size, dist_table, _ = utils.load_MCP(inst_path)
 
     file_dir = os.path.dirname(os.path.abspath(__file__))
     model = Model(os.path.join(file_dir, "BaseModel Improved.mzn"))
+
+    if solver_name == "":
+        solver_name = "gecode"
 
     solver = Solver.lookup(solver_name)
     instance = Instance(solver, model)

@@ -44,7 +44,7 @@ def print_output(assignments, status, obj, instance, instance_n, solver, time):
     utils.print_json(tours.tolist(), obj, res, "MIP with " + str(solver), instance_n, time)
 
 
-def main(inst_path, solver):
+def main(inst_path, solver = ""):
     """
     IDEA: One Travelling salesman problem per courier
           (aka, one full connection table of booleans for selecting the path)
@@ -52,6 +52,10 @@ def main(inst_path, solver):
     """
     m, n, load, size, dist_table, instance = utils.load_MCP(inst_path)
     dist_table = np.stack(dist_table)
+
+    if solver == "":
+        solver = "gecode"
+
     model = Model(sense=MINIMIZE, solver_name=solver)
     model.verbose = 0
 

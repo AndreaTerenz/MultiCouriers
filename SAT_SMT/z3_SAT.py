@@ -1,6 +1,6 @@
 from sys import argv
 
-from constraints import *
+from SAT_SMT.constraints import *
 from utils import *
 from utils.z3utils import *
 
@@ -42,8 +42,8 @@ def ohe_noteq(enc, target):
 def ohe_select(array, ohe_idx):
     return Select(array, ohe_to_int(ohe_idx))
 
-def main():
-    m, n, loads, sizes, distances, inst = load_MCP(argv[1])
+def main(instance_path):
+    m, n, loads, sizes, distances, inst = load_MCP(instance_path)
 
     #loads = sorted(loads)
 
@@ -126,4 +126,4 @@ def main():
     check_solver(res, X_values, inst, optim_value=z.value().as_long())
 
 if __name__ == '__main__':
-    main()
+    main(argv[1])

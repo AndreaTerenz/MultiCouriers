@@ -1,10 +1,12 @@
-from constraints import *
 from sys import argv
+
+from SAT_SMT.constraints import *
 from utils import *
 from utils.z3utils import *
 
-def main():
-    m, n, loads, sizes, dist_table, inst = load_MCP(argv[1])
+
+def main(instance_path):
+    m, n, loads, sizes, dist_table, inst = load_MCP(instance_path)
 
     # Every courier must deliver at least one item
     # so we know each will deliver at most N-M+1 items
@@ -64,4 +66,4 @@ def main():
     check_solver(res, X_values, inst, optim_value=z.value().as_long())
 
 if __name__ == '__main__':
-    main()
+    main(argv[1])

@@ -1,9 +1,10 @@
 from itertools import combinations
 from multiprocessing import freeze_support
-from timeit import default_timer as timer
 
 from pysmt.shortcuts import *
-from mcputils import *
+
+from utils import *
+from utils.z3utils import *
 
 
 def at_least_one(bool_vars):
