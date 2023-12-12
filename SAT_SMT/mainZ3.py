@@ -1,6 +1,7 @@
 from constraints import *
 from sys import argv
-from mcputils import *
+from utils import *
+from utils.z3utils import *
 
 def main():
     m, n, loads, sizes, dist_table, inst = load_MCP(argv[1])
@@ -60,7 +61,7 @@ def main():
 
     res = ModelResult.Satisfied if res == sat else ModelResult.Unsatisfied
 
-    check_solver(res, X_values, inst, optim_value=z.value())
+    check_solver(res, X_values, inst, optim_value=z.value().as_long())
 
 if __name__ == '__main__':
     main()

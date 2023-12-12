@@ -1,7 +1,9 @@
-from constraints import *
-from timeit import default_timer as timer
 from sys import argv
-from mcputils import *
+
+from constraints import *
+from utils import *
+from utils.z3utils import *
+
 
 def ohe_encode(value:int, bits):
     #assert bits >= value, f"Unable to OH encode {value} with {bits} bits"
@@ -20,14 +22,14 @@ def ohe_decode(bits):
     except ValueError:
         return 0
 
-def ohe_to_intsort(bits_z3):
+def ohe_to_int(bits_z3):
     return Sum([If(bits_z3[i], i+1, 0) for i in range(len(bits_z3))])
 
 def ohe_eq(enc, target):
     """t_enc = ohe_encode(target, len(enc))
 
     return And([e == t for e,t in zip(enc, t_enc)])"""
-    return ohe_to_intsort(enc) == target
+    return ohe_to_int(enc) == target
 
 def ohe_noteq(enc, target):
     """
@@ -35,10 +37,10 @@ def ohe_noteq(enc, target):
 
     return And(at_least_one([e != t for e,t in zip(enc, t_enc)]))
     """
-    return ohe_to_intsort(enc) != target
+    return ohe_to_int(enc) != target
 
 def ohe_select(array, ohe_idx):
-    return Select(array, ohe_to_intsort(ohe_idx))
+    return Select(array, ohe_to_int(ohe_idx))
 
 def main():
     m, n, loads, sizes, distances, inst = load_MCP(argv[1])
@@ -92,9 +94,9 @@ def main():
 
     total_dist = [Int(f"td_{i}") for i in ri]
     s.add([total_dist[i] ==
-           d(ORIGIN, ohe_to_intsort(X[i][0])) +
-           Sum([d(ohe_to_intsort(X[i][k]), ohe_to_intsort(X[i][k+1])) for k in range(n-m)]) +
-           d(ohe_to_intsort(X[i][-1]), ORIGIN) for i in ri])
+           d(ORIGIN, ohe_to_int(X[i][0])) +
+           Sum([d(ohe_to_int(X[i][k]), ohe_to_int(X[i][k + 1])) for k in range(n - m)]) +
+           d(ohe_to_int(X[i][-1]), ORIGIN) for i in ri])
 
     #################
 
@@ -121,7 +123,7 @@ def main():
 
     res = ModelResult.Satisfied if res == sat else ModelResult.Unsatisfied
 
-    check_solver(res, X_values, inst, optim_value=z.value())
+    check_solver(res, X_values, inst, optim_value=z.value().as_long())
 
 if __name__ == '__main__':
     main()

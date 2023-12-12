@@ -1,10 +1,13 @@
-from mip import *
 import itertools
-from timeit import default_timer as timer
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
-import mcputils as utils
+from timeit import default_timer as timer
+
+from mip import *
+
+# import mcputils as utils
+import utils
 
 
 def give_arcs(M, nodes):
