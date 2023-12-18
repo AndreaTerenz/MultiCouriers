@@ -97,7 +97,7 @@ def run_solver(s, solve_lambda, name=""):
     if name != "":
         print(f"Solving with {name}...", end="")
     else:
-        print(f"Solving...")
+        print(f"Solving...", end="")
 
     start = timer()
     res = solve_lambda(s)
@@ -127,7 +127,7 @@ def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_v
     item_sizes = instance["item_sizes"]
     dists = instance["distances"]
 
-    assert expected_res is None or result == expected_res, f"Incorrect result (expected {expected_res})"
+    assert print_only or (expected_res is None or result == expected_res), f"Incorrect result (expected {expected_res})"
 
     print(str(result).split(".")[-1].upper())
 
@@ -163,15 +163,15 @@ def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_v
         obj = max(travelled, obj)
 
         print(f"\t carried: {tot:2} - travelled: {travelled}")
-        assert not print_only or tot <= load_sizes[i], f"Load constraint violated for courier {i}"
+        assert print_only or tot <= load_sizes[i], f"Load constraint violated for courier {i}"
 
     print("Load sizes respected")
 
     deliv_len = len(delivered)
     deliv_set_len = len(set(delivered))
 
-    assert not print_only or deliv_len == deliv_set_len, "Items delivered more than once"
-    assert not print_only or deliv_set_len == n, "Not all items were delivered"
+    assert print_only or deliv_len == deliv_set_len, "Items delivered more than once"
+    assert print_only or deliv_set_len == n, "Not all items were delivered"
 
     print("All items delivered exactly once")
 
