@@ -23,7 +23,7 @@ def ohe_decode(bits):
         return 0
 
 def ohe_to_int(bits_z3):
-    return Sum([If(bits_z3[i], i+1, 0) for i in range(len(bits_z3))])
+    return Sum([(i+1) * bits_z3[i] for i in range(len(bits_z3))])
 
 def ohe_eq(enc, target):
     """t_enc = ohe_encode(target, len(enc))
@@ -71,8 +71,8 @@ def main(instance_path):
     sums = [Sum([If(ohe_eq(X[i][k], ORIGIN), 0, ohe_select(item_sizes, X[i][k])) for k in rk]) for i in ri]
     ml_constr = [sums[i] <= load_sizes[i] for i in ri]
 
-    deliver_once_constr = [And(exactly_one([ohe_eq(X[i][k], j) for k in rk for i in ri])) for j in range(n)]
-    at_least_one_constr = [And(at_least_one([ohe_noteq(X[i][k], ORIGIN) for k in rk])) for i in ri]
+    deliver_once_constr = [exactly_one([ohe_eq(X[i][k], j) for k in rk for i in ri]) for j in range(n)]
+    at_least_one_constr = [at_least_one([ohe_noteq(X[i][k], ORIGIN) for k in rk]) for i in ri]
 
     s = Optimize()
     s.add(

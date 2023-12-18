@@ -109,7 +109,7 @@ def run_solver(s, solve_lambda, name=""):
 
 
 @print_heading
-def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_value: int = 0, expected_res : list =None, print_only=False):
+def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_value: int = 0, expected_res : list =None, check_constrs=True):
     """
     Checks if the results of the solving process is within the bounds of the problem and prints the output.
     :param ModelResult result: output of the solving process;
@@ -117,7 +117,7 @@ def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_v
     :param dict instance: data of the given problem;
     :param int optim_value: if positive, the optimal solution of the problem - if non positive (defaults to 0), it will be computed from the courier tours
     :param list expected_res: if known, the expected tours for the couriers;
-    :param bool print_only: toggle off checks on the solution data (defaults to False)
+    :param bool check_constrs: toggle checks on the solution data (defaults to True)
     :return: the final value found by the solver
     :rtype int:
     """
@@ -127,9 +127,12 @@ def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_v
     item_sizes = instance["item_sizes"]
     dists = instance["distances"]
 
-    assert print_only or (expected_res is None or result == expected_res), f"Incorrect result (expected {expected_res})"
-
     print(str(result).split(".")[-1].upper())
+
+    if not check_constrs:
+        print("(skipping constraint checks)")
+    else:
+        assert expected_res is None or result == expected_res, f"Incorrect result (expected {expected_res})"
 
     if result in [ModelResult.Unknown, ModelResult.Unsatisfied]:
         return
@@ -163,17 +166,20 @@ def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_v
         obj = max(travelled, obj)
 
         print(f"\t carried: {tot:2} - travelled: {travelled}")
-        assert print_only or tot <= load_sizes[i], f"Load constraint violated for courier {i}"
+        if check_constrs:
+            assert tot <= load_sizes[i], f"Load constraint violated for courier {i}"
 
-    print("Load sizes respected")
+    if check_constrs:
+        print("Load sizes respected")
 
     deliv_len = len(delivered)
     deliv_set_len = len(set(delivered))
 
-    assert print_only or deliv_len == deliv_set_len, "Items delivered more than once"
-    assert print_only or deliv_set_len == n, "Not all items were delivered"
+    if check_constrs:
+        assert deliv_len == deliv_set_len, "Items delivered more than once"
+        assert deliv_set_len == n, "Not all items were delivered"
 
-    print("All items delivered exactly once")
+        print("All items delivered exactly once")
 
     if optim_value != 0:
         print(f"Optimized Z: {optim_value}")
