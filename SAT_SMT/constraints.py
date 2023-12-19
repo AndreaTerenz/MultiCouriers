@@ -7,10 +7,10 @@ def at_least_one(bool_vars):
     return Or(bool_vars)
 
 def at_most_one(bool_vars):
-    return [Not(And(pair[0], pair[1])) for pair in combinations(bool_vars, 2)]
+    return And([Not(And(pair[0], pair[1])) for pair in combinations(bool_vars, 2)])
 
 def exactly_one(bool_vars):
-    return And(at_most_one(bool_vars) + [at_least_one(bool_vars)])
+    return And(at_most_one(bool_vars), at_least_one(bool_vars))
 
 def at_least_one_seq(bool_vars):
     return at_least_one(bool_vars)

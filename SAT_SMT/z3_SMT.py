@@ -22,10 +22,10 @@ def main(instance_path):
     X = [[Int(f"x_{i}_{k}") for k in rk] for i in ri]
 
     domain_constr = [And(ORIGIN <= X[i][k], X[i][k] < n) for i in ri for k in rk]
-    consec_constr = [Implies(X[i][k] == ORIGIN, X[i][k+1] == ORIGIN) for k in range(n-m) for i in ri]
+    consec_constr = [Implies(X[i][k] == ORIGIN, X[i][k+1] == ORIGIN) for k in range(1,n-m) for i in ri]
     ml_constr = [Sum([If(c == ORIGIN, 0, item_sizes[c]) for c in X[i]]) <= load_sizes[i] for i in ri]
     deliver_once_constr = [exactly_one([X[i][k] == j for k in rk for i in ri]) for j in range(n)]
-    at_least_one_constr = [at_least_one([X[i][k] != ORIGIN for k in rk]) for i in ri]
+    at_least_one_constr = [X[i][0] != ORIGIN for i in ri]
 
     s = Optimize()
     s.add(

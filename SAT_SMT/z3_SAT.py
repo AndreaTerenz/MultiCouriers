@@ -26,18 +26,21 @@ def ohe_to_int(bits_z3):
     return Sum([(i+1) * bits_z3[i] for i in range(len(bits_z3))])
 
 def ohe_eq(enc, target):
-    """t_enc = ohe_encode(target, len(enc))
+    if target == 0:
+        return And([Not(e) for e in enc])
 
-    return And([e == t for e,t in zip(enc, t_enc)])"""
-    return ohe_to_int(enc) == target
-
-def ohe_noteq(enc, target):
-    """
     t_enc = ohe_encode(target, len(enc))
 
-    return And(at_least_one([e != t for e,t in zip(enc, t_enc)]))
-    """
-    return ohe_to_int(enc) != target
+    return And([e == t for e,t in zip(enc, t_enc)])
+
+def ohe_noteq(enc, target):
+    if target == 0:
+        return Or(enc)
+
+    t_enc = ohe_encode(target, len(enc))
+
+    return Or([e != t for e,t in zip(enc, t_enc)])
+
 
 def ohe_select(array, ohe_idx):
     return Select(array, ohe_to_int(ohe_idx))
@@ -64,15 +67,15 @@ def main(instance_path):
     X = [[Bools(names=[f"x_{i}_{k}_{j}" for j in rj]) for k in rk] for i in ri]
 
     # Basically, each X_ik is a one-hot encoding of an item, so we constrain it to be one-hot
-    ohe_constr = [And([And(at_most_one(X[i][k])) for k in rk]) for i in ri]
+    ohe_constr = [And([at_most_one(X[i][k]) for k in rk]) for i in ri]
 
-    consec_constr = [Implies(ohe_eq(X[i][k], ORIGIN), ohe_eq(X[i][k + 1], ORIGIN)) for k in range(n - m) for i in ri]
+    consec_constr = [Implies(ohe_eq(X[i][k], ORIGIN), ohe_eq(X[i][k + 1], ORIGIN)) for k in range(1,n - m) for i in ri]
 
     sums = [Sum([If(ohe_eq(X[i][k], ORIGIN), 0, ohe_select(item_sizes, X[i][k])) for k in rk]) for i in ri]
     ml_constr = [sums[i] <= load_sizes[i] for i in ri]
 
     deliver_once_constr = [exactly_one([ohe_eq(X[i][k], j) for k in rk for i in ri]) for j in range(n)]
-    at_least_one_constr = [at_least_one([ohe_noteq(X[i][k], ORIGIN) for k in rk]) for i in ri]
+    at_least_one_constr = [ohe_noteq(X[i][0], ORIGIN) for i in ri]
 
     s = Optimize()
     s.add(
@@ -106,6 +109,9 @@ def main(instance_path):
     z = s.minimize(max_z3(total_dist))
 
     res = run_solver(s, lambda _s : _s.check())
+    res = ModelResult.Satisfied if res == sat else ModelResult.Unsatisfied
+
+    assert res == ModelResult.Satisfied, "Unsatisfiable"
 
     model = s.model()
 
@@ -117,11 +123,9 @@ def main(instance_path):
         X_values.append([])
         for s in c:
             v = ohe_decode(s)
-            if v == n:
+            if v == ORIGIN:
                 v = -1
             X_values[-1].append(v)
-
-    res = ModelResult.Satisfied if res == sat else ModelResult.Unsatisfied
 
     check_solver(res, X_values, inst, optim_value=z.value().as_long())
 
