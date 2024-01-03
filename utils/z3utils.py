@@ -49,3 +49,6 @@ def max_z3(values):
     for val in values[1:]:
         m = If(val > m, val, m)
     return m
+
+def set_z3_timeout(timeout=0):
+    z3.set_option(timeout=None if timeout <= 0 else int(timeout * 1000))

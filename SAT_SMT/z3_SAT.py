@@ -23,7 +23,7 @@ def ohe_decode(bits):
         return 0
 
 def ohe_to_int(bits_z3):
-    return Sum([(i+1) * bits_z3[i] for i in range(len(bits_z3))])
+    return Sum([(i+1) * b for i, b in enumerate(bits_z3)])
 
 def ohe_eq(enc, target):
     if target == 0:
@@ -57,7 +57,7 @@ def main(instance_path):
     ri = range(m)
 
     ORIGIN = n
-    rj = range(ORIGIN)
+    rj = range(n)
 
     load_sizes = to_z3array(loads, "load_sizes", IntSort())
     item_sizes = to_z3array(sizes, "item_sizes", IntSort())
@@ -108,7 +108,7 @@ def main(instance_path):
         s.minimize(total_dist[i])"""
     z = s.minimize(max_z3(total_dist))
 
-    res = run_solver(s, lambda _s : _s.check())
+    res = run_solver(s, lambda _s : _s.check(), timeout=300)
     res = ModelResult.Satisfied if res == sat else ModelResult.Unsatisfied
 
     assert res == ModelResult.Satisfied, "Unsatisfiable"

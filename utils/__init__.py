@@ -2,8 +2,13 @@ import functools
 import json
 import pathlib
 import re
+# Very ugly hack lol
+import sys
 from enum import Enum
+from threading import Thread
 from timeit import default_timer as timer
+
+sys.tracebacklimit = 0
 
 import numpy as np
 
@@ -82,7 +87,7 @@ def load_MCP(path: str):
 
 
 @print_heading
-def run_solver(s, solve_lambda, name=""):
+def run_solver(s, solve_lambda, name="", timeout=-1):
     """
     Runs a solving process with given solver.
 
@@ -90,20 +95,43 @@ def run_solver(s, solve_lambda, name=""):
         s: solver object
         solve_lambda: a lambda expression that runs a given solver and returns its result
         name: str, the name of the solver to show in the output, if any (defaults to "")
+        timeout: int, solver timeout (in seconds)
 
     Returns:
         ModelResult: result produced of the solver (usually some solver-dependent value to indicate optimal, feasible, unsatisfied, ecc...)
     """
+
+    class CustomThread(Thread):
+        # constructor
+        def __init__(self, solver, solve_lambda):
+            super().__init__(daemon=True)
+
+            self.solver = solver
+            self.solve_lambda = solve_lambda
+            self.res = None
+
+        def run(self):
+            self.res = solve_lambda(self.solver)
+
     if name != "":
-        print(f"Solving with {name}...", end="")
+        print(f"Solving with {name}...")
     else:
-        print(f"Solving...", end="")
+        print(f"Solving...")
 
     start = timer()
-    res = solve_lambda(s)
+
+    ct = CustomThread(s, solve_lambda)
+    ct.start()
+
+    ct.join(timeout=None if timeout <= 0 else timeout)
+
+    assert timeout <= 0 or not ct.is_alive(), f"Failed to find solution in time (timeout: {timeout} s)"
+
+    res = ct.res
+
     end = timer()
 
-    print(f"done in {end - start:.3f} seconds")
+    print(f"Done in {end - start:.3f} seconds")
 
     return res
 
@@ -167,7 +195,7 @@ def check_solver(result: ModelResult, vars_values: list, instance: dict, optim_v
 
         print(f"\t carried: {tot:2} - travelled: {travelled}")
         if check_constrs:
-            assert tot <= load_sizes[i], f"Load constraint violated for courier {i}"
+            assert tot <= load_sizes[i], f"Load constraint violated for courier {i} (load limit: {load_sizes[i]}, carried: {tot})"
 
     if check_constrs:
         print("Load sizes respected")

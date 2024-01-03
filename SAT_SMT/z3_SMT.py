@@ -55,7 +55,7 @@ def main(instance_path):
         s.minimize(total_dist[i])"""
     z = s.minimize(max_z3(total_dist))
 
-    res = run_solver(s, lambda _s : _s.check())
+    res = run_solver(s, lambda _s : _s.check(), timeout=300)
 
     model = s.model()
 

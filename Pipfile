@@ -13,6 +13,8 @@ pysmt = "*"
 z3-solver = "*"
 swig = "*"
 mxklabs = "*"
+mip = "*"
+minizinc = "*"
 
 [dev-packages]
 
